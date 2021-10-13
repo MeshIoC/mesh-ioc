@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 
+import { depMetadata } from '.';
 import { DepInstanceNotConnected, DepKeyNotInferred } from './errors';
 import { Mesh, MESH_REF } from './mesh';
 
@@ -11,7 +12,12 @@ export function dep(options: DepOptions = {}) {
         if (!key) {
             throw new DepKeyNotInferred(className, propertyName);
         }
-        // TODO store metadata
+        depMetadata.push({
+            className,
+            propertyName,
+            designTypeName: designType.name,
+            key,
+        });
         Object.defineProperty(target, propertyName, {
             get() {
                 const mesh = this[MESH_REF] as Mesh;

@@ -28,7 +28,8 @@
         "ioc",
         "di",
         "structure",
-        "typesafe"
+        "typesafe",
+        "dependencies"
     ],
     "author": "Boris Okunskiy",
     "license": "ISC",

@@ -1,8 +1,8 @@
 import 'reflect-metadata';
 
-import { depMetadata } from '.';
 import { DepInstanceNotConnected, DepKeyNotInferred } from './errors';
 import { Mesh, MESH_REF } from './mesh';
+import { depMetadata } from './metadata';
 
 export function dep(options: DepOptions = {}) {
     return function(target: any, propertyName: string) {

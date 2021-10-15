@@ -1,8 +1,8 @@
-# Service Mesh IoC
+# Mesh IoC
 
 Powerful and lightweight alternative to Dependency Injection (DI) solutions like [Inversify](https://inversify.io/).
 
-Service Mesh solves the problem of dependency management of application services. It wires together application services (i.e. singletons instantiated once and scoped to an entire application) and contextual services (e.g. services scoped to a particular HTTP request, WebSocket connection, etc.)
+Mesh IoC solves the problem of dependency management of application services. It wires together application services (i.e. singletons instantiated once and scoped to an entire application) and contextual services (e.g. services scoped to a particular HTTP request, WebSocket connection, etc.)
 
 ## Key features
 
@@ -45,7 +45,7 @@ Traditional IoC systems use a technique called Dependency Injection (DI) which i
 
 The rest of the application should avoid instantiating services directly, instead it asks the container to provide them. Container makes sure that all dependencies are instantiated and fulfilled. Numerous binding options make DI systems like [Inversify](https://inversify.io/) very flexible and versatile.
 
-Service Mesh is very similar to DI conceptually:
+Mesh IoC is very similar to DI conceptually:
 
   - `Mesh` is also composition root where all the bindings are declared
   - The services also demarcate their dependencies with a decorator, and the mesh makes sure they are resolved.
@@ -92,7 +92,7 @@ class AppMesh extends Mesh {
 }
 ```
 
-There are several aspects that differentiate Service Mesh from the rest of the DI libraries.
+There are several aspects that differentiate Mesh IoC from the rest of the DI libraries.
 
   - Mesh is used only for services, so service instances are cached in mesh. If you only have a single mesh instance, the services will effectively be singletons. However, if multiple mesh instances are created, then each mesh will track its own service instances.
 

@@ -1,7 +1,7 @@
 {
-    "name": "service-mesh",
+    "name": "mesh-ioc",
     "version": "0.0.0",
-    "description": "Service Mesh: Powerful and Lightweight IoC Library",
+    "description": "Mesh: Powerful and Lightweight IoC Library",
     "main": "out/main/index.js",
     "types": "out/main/index.d.ts",
     "files": [
@@ -22,7 +22,7 @@
     ],
     "repository": {
         "type": "git",
-        "url": "git+ssh://git@github.com/inca/service-mesh.git"
+        "url": "git+ssh://git@github.com/inca/mesh-ioc.git"
     },
     "keywords": [
         "ioc",

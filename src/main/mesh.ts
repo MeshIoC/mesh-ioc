@@ -4,6 +4,8 @@ import { AbstractService, ServiceConstructor } from './types';
 
 export const MESH_REF = Symbol.for('MESH_REF');
 
+export type ServiceKey<T> = ServiceConstructor<T> | AbstractService<T> | string;
+
 export class Mesh {
     bindings: Map<string, Binding<any>> = new Map();
 
@@ -17,7 +19,7 @@ export class Mesh {
     bind<T>(impl: ServiceConstructor<T>): Binding<T>;
     bind<T>(key: AbstractService<T> | string, impl: ServiceConstructor<T>): Binding<T>;
     bind<T>(key: ServiceConstructor<T> | AbstractService<T> | string, impl?: ServiceConstructor<T>): Binding<T> {
-        const k = typeof key === 'string' ? key : key.name;
+        const k = keyToString(key);
         if (typeof impl === 'function') {
             return this._bindService(k, impl);
         } else if (typeof key === 'function') {
@@ -31,20 +33,21 @@ export class Mesh {
     }
 
     alias<T>(key: AbstractService<T> | string, referenceKey: AbstractService<T> | string): Binding<T> {
-        const k = typeof key === 'string' ? key : key.name;
+        const k = keyToString(key);
         const refK = typeof referenceKey === 'string' ? referenceKey : referenceKey.name;
         return this._add(new ProxyBinding(this, k, refK));
     }
 
-    resolve<T>(key: string): T {
-        const binding = this.bindings.get(key);
+    resolve<T>(key: ServiceKey<T>): T {
+        const k = keyToString(key);
+        const binding = this.bindings.get(k);
         if (binding) {
             return binding.get();
         }
         if (this.parent) {
             return this.parent.resolve(key);
         }
-        throw new MeshServiceNotFound(this.name, key);
+        throw new MeshServiceNotFound(this.name, k);
     }
 
     connect(value: any) {
@@ -71,4 +74,8 @@ export class Mesh {
         });
     }
 
+}
+
+function keyToString<T>(key: ServiceKey<T>) {
+    return typeof key === 'string' ? key : key.name;
 }

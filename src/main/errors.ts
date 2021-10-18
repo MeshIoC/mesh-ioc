@@ -19,14 +19,14 @@ export class DepInstanceNotConnected extends BaseError {
 
 export class MeshServiceNotFound extends BaseError {
     constructor(meshName: string, serviceKey: string) {
-        super(`Service ${serviceKey} not found in Mesh ${meshName}`);
+        super(`Service "${serviceKey}" not found in Mesh "${meshName}"`);
     }
 }
 
 export class MeshInvalidServiceBinding extends BaseError {
     constructor(key: string) {
         super(`Invalid service binding "${key}". Valid bindings are: ` +
-            `string to constructor e.g. ('MyService', MyService) or ` +
+            `string to constructor e.g. ("MyService", MyService) or ` +
             `abstract class to constructor e.g. (MyService, MyServiceImpl) or` +
             `constructor to self e.g. (MyService)`);
     }

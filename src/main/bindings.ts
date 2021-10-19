@@ -11,7 +11,7 @@ export class ConstantBinding<T> extends Binding<T> {
 
     constructor(mesh: Mesh, key: string, value: T) {
         super(mesh, key);
-        this.value = value;
+        this.value = this.mesh.applyMiddleware(value);
         this.mesh.connect(this.value);
     }
 
@@ -29,7 +29,7 @@ export class ServiceBinding<T> extends Binding<T> {
 
     get(): T {
         if (!this.instance) {
-            this.instance = new this.ctor();
+            this.instance = this.mesh.applyMiddleware(new this.ctor());
             this.mesh.connect(this.instance);
         }
         return this.instance;

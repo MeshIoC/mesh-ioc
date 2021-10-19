@@ -1,13 +1,12 @@
 import { Binding, ConstantBinding, ProxyBinding, ServiceBinding } from './bindings';
 import { MeshInvalidServiceBinding, MeshServiceNotFound } from './errors';
-import { AbstractService, ServiceConstructor } from './types';
+import { AbstractService, Middleware, ServiceConstructor, ServiceKey } from './types';
 
 export const MESH_REF = Symbol.for('MESH_REF');
 
-export type ServiceKey<T> = ServiceConstructor<T> | AbstractService<T> | string;
-
 export class Mesh {
     bindings: Map<string, Binding<any>> = new Map();
+    middlewares: Middleware[] = [];
 
     constructor(
         public name: string = 'default',
@@ -28,15 +27,25 @@ export class Mesh {
         throw new MeshInvalidServiceBinding(String(key));
     }
 
+    protected _bindService<T>(k: string, impl: ServiceConstructor<T>): Binding<T> {
+        const binding = new ServiceBinding<T>(this, k, impl);
+        this.bindings.set(k, binding);
+        return new ProxyBinding<T>(this, k, k);
+    }
+
     constant<T>(key: ServiceKey<T>, value: T): Binding<T> {
         const k = keyToString(key);
-        return this._add(new ConstantBinding<T>(this, k, value));
+        const binding = new ConstantBinding<T>(this, k, value);
+        this.bindings.set(k, binding);
+        return new ProxyBinding<T>(this, k, k);
     }
 
     alias<T>(key: AbstractService<T> | string, referenceKey: AbstractService<T> | string): Binding<T> {
         const k = keyToString(key);
         const refK = typeof referenceKey === 'string' ? referenceKey : referenceKey.name;
-        return this._add(new ProxyBinding(this, k, refK));
+        const binding = new ProxyBinding<T>(this, k, refK);
+        this.bindings.set(k, binding);
+        return binding;
     }
 
     resolve<T>(key: ServiceKey<T>): T {
@@ -52,17 +61,20 @@ export class Mesh {
     }
 
     connect(value: any) {
-        // TODO apply middlewares
         this._addMeshRef(value);
     }
 
-    protected _bindService<T>(key: string, impl: ServiceConstructor<T>): Binding<T> {
-        return this._add(new ServiceBinding<T>(this, key, impl));
+    use(fn: Middleware): this {
+        this.middlewares.push(fn);
+        return this;
     }
 
-    protected _add<T>(binding: Binding<any>): Binding<T> {
-        this.bindings.set(binding.key, binding);
-        return new ProxyBinding<T>(this, binding.key, binding.key);
+    applyMiddleware<T>(value: T): T {
+        let res = value;
+        for (const middleware of this.middlewares) {
+            res = middleware(res);
+        }
+        return res;
     }
 
     protected _addMeshRef(value: any) {

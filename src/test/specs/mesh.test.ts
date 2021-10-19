@@ -1,5 +1,6 @@
 import assert from 'assert';
 
+import { dep } from '../../main';
 import { Mesh } from '../../main/mesh';
 import { Database } from '../services/database';
 import { Logger, StandardLogger, TestLogger } from '../services/logger';
@@ -35,7 +36,6 @@ describe('Mesh', () => {
     });
 
     describe('resolve', () => {
-
         it('resolves binding by class name', () => {
             const mesh = new Mesh();
             mesh.bind(Logger, StandardLogger);
@@ -45,7 +45,6 @@ describe('Mesh', () => {
     });
 
     describe('dependency resolution', () => {
-
         it('resolves dependency decorated with @dep', () => {
             const mesh = new Mesh();
             const _testLogger = mesh.bind(TestLogger);
@@ -56,7 +55,41 @@ describe('Mesh', () => {
             db.connect();
             assert.deepStrictEqual(_testLogger.get().messages, ['Connected to database']);
         });
+    });
 
+    describe('connect', () => {
+        it('allows connecting "guest" instances so they can use @dep', () => {
+            const mesh = new Mesh();
+            mesh.bind(Logger, TestLogger);
+            class Foo {
+                @dep() logger!: Logger;
+            }
+            const foo = new Foo();
+            mesh.connect(foo);
+            assert.ok(foo.logger instanceof TestLogger);
+        });
+    });
+
+    describe('middleware', () => {
+        it('applies middleware to bound instances', () => {
+            const mesh = new Mesh();
+            mesh.bind(Logger, TestLogger);
+            mesh.use(obj => {
+                Object.defineProperty(obj, 'foo', {
+                    value: 42
+                });
+                return obj;
+            });
+            mesh.use(obj => {
+                Object.defineProperty(obj, 'bar', {
+                    value: 24
+                });
+                return obj;
+            });
+            const logger = mesh.resolve(Logger);
+            assert.strictEqual((logger as any).foo, 42);
+            assert.strictEqual((logger as any).bar, 24);
+        });
     });
 
 });

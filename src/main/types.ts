@@ -10,3 +10,7 @@ export type AbstractService<T> = {
     name: string;
     prototype: T;
 }
+
+export type ServiceKey<T> = ServiceConstructor<T> | AbstractService<T> | string;
+
+export type Middleware = (instance: any) => any;

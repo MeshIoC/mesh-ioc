@@ -28,8 +28,9 @@ export class Mesh {
         throw new MeshInvalidServiceBinding(String(key));
     }
 
-    constant<T>(key: string, value: T): Binding<T> {
-        return this._add(new ConstantBinding<T>(this, key, value));
+    constant<T>(key: ServiceKey<T>, value: T): Binding<T> {
+        const k = keyToString(key);
+        return this._add(new ConstantBinding<T>(this, k, value));
     }
 
     alias<T>(key: AbstractService<T> | string, referenceKey: AbstractService<T> | string): Binding<T> {

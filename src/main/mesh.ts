@@ -72,6 +72,7 @@ export class Mesh {
         Object.defineProperty(value, MESH_REF, {
             get: () => this,
             enumerable: false,
+            configurable: true,
         });
     }
 

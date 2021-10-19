@@ -60,8 +60,10 @@ export class Mesh {
         throw new MeshServiceNotFound(this.name, k);
     }
 
-    connect(value: any) {
-        this._addMeshRef(value);
+    connect<T>(value: T): T {
+        const res = this.applyMiddleware(value);
+        this.addMeshRef(res);
+        return res;
     }
 
     use(fn: Middleware): this {
@@ -69,7 +71,7 @@ export class Mesh {
         return this;
     }
 
-    applyMiddleware<T>(value: T): T {
+    protected applyMiddleware<T>(value: T): T {
         let res = value;
         for (const middleware of this.middlewares) {
             res = middleware(res);
@@ -77,7 +79,7 @@ export class Mesh {
         return res;
     }
 
-    protected _addMeshRef(value: any) {
+    protected addMeshRef(value: any) {
         if (typeof value !== 'object') {
             return;
         }

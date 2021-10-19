@@ -1,6 +1,6 @@
 {
     "name": "mesh-ioc",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "description": "Mesh: Powerful and Lightweight IoC Library",
     "main": "out/main/index.js",
     "types": "out/main/index.d.ts",

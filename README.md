@@ -127,7 +127,7 @@ This short guide briefly explains the basic concepts of a good application archi
   - **Request/session scope**: things like traditional HTTP routers will depend on `request` and `response` objects; the same reasoning can be applied to other scenarios, for example, web socket server may need functionality per each connected client — such components will depend on client socket.
   - **Short-lived per-instance scope**: if you use "fat" classes (e.g. Active Record pattern) then each entity instances should be conceptually "connected" to the rest of the application (e.g. `instance.save()` should somehow know about the database)
 
-2. Build the mesh hierarchy, starting from application scope.
+2. Build the mesh hierarchy, starting from application scope, descending into more granular scopes.
 
     ```ts
     // app.ts

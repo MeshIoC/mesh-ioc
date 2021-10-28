@@ -217,6 +217,15 @@ This short guide briefly explains the basic concepts of a good application archi
     }
     ```
 
+6. Come up with conventions and document them, for example:
+
+  - create different directories for services with different scopes
+  - separate entrypoints from the rest of the modules
+    - entrypoints only import, instantiate and invoke methods (think "runnable from CLI")
+    - all other modules only export stuff
+
+You can take those further and adapt to your own needs. Meshes are composable and the underlying mechanics are quite simple. Start using it and you'll get a better understanding of how to adapt it to the needs of your particular case.
+
 ## Advanced
 
 ### Connecting "guest" instances
@@ -256,6 +265,43 @@ class UserService {
 ```
 
 Note: the important limitation of this approach is that `@dep` are not available in entity constructors (e.g. `database` cannot be resolved in `User` constructor, because by the time the instance is instantiated it's not yet connected to the mesh).
+
+### Binding classes
+
+Mesh typically connects the instances of services (again, services are classes with zero-arg constructors).
+
+However, in some cases you may need to instantiate other classes, for example, third-party or with non-zero-arg constructors. You can always do it directly, however, a level of indirection can be introduced by defining a class on Mesh. This can be especially useful in tests where classes can be substituted on Mesh level without changing the implementation.
+
+Example:
+
+```ts
+// An example arbitrary class, unconnected to mesh
+class Session {
+    constructor(readonly sessionId: number) {}
+}
+
+// A normal service connected to mesh
+class SessionManager {
+    // Class constructor is injected (note: `key` is required because it cannot be deferred in this case)
+    @dep({ key: 'Session' }) Session!: typeof Session;
+
+    createSession(id: number): Session {
+        // Instantiate using injected constructor
+        return new this.Session(id);
+    }
+}
+
+// ...
+const mesh = new Mesh();
+mesh.bind(SessionManager);
+mesh.class(Session); // This makes Session class available as a binding
+
+// In tests this can be overridden, so SessionManager will transparently instantiate a different class
+// (assuming constructor signatures match)
+mesh.class(Session, MySession);
+```
+
+This approach can also be combined with `connect` so that the arbitrary class can also use `@dep`. Mix & match FTW!
 
 ## License
 

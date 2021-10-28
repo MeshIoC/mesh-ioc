@@ -92,4 +92,30 @@ describe('Mesh', () => {
         });
     });
 
+    describe('use deps in constructor', () => {
+
+        class Counter {
+            value = 0;
+            incr() {
+                this.value += 1;
+            }
+        }
+
+        class Foo {
+            @dep() counter!: Counter;
+            constructor() {
+                this.counter.incr();
+            }
+        }
+
+        it('allows accessing @dep in constructor', () => {
+            const mesh = new Mesh();
+            const counter = mesh.bind(Counter);
+            const foo = mesh.bind(Foo);
+            foo.get();
+            assert.strictEqual(counter.get().value, 1);
+            assert.strictEqual(counter.get().constructor.name, 'Counter');
+        });
+    });
+
 });

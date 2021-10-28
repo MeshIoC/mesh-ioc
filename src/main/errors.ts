@@ -23,9 +23,9 @@ export class MeshServiceNotFound extends BaseError {
     }
 }
 
-export class MeshInvalidServiceBinding extends BaseError {
+export class MeshInvalidBinding extends BaseError {
     constructor(key: string) {
-        super(`Invalid service binding "${key}". Valid bindings are: ` +
+        super(`Invalid binding "${key}". Valid bindings are: ` +
             `string to constructor e.g. ("MyService", MyService) or ` +
             `abstract class to constructor e.g. (MyService, MyServiceImpl) or` +
             `constructor to self e.g. (MyService)`);

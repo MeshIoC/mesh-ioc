@@ -1,5 +1,5 @@
 import { Mesh } from './mesh';
-import { ServiceConstructor } from './types';
+import { Constructor, ServiceConstructor } from './types';
 
 export abstract class Binding<T> {
     constructor(readonly mesh: Mesh, readonly key: string) {}
@@ -20,17 +20,40 @@ export class ConstantBinding<T> extends Binding<T> {
 }
 
 export class ServiceBinding<T> extends Binding<T> {
+    ctor: ServiceConstructor<T>;
     instance: T | undefined;
 
-    constructor(mesh: Mesh, key: string, readonly ctor: ServiceConstructor<T>) {
+    constructor(mesh: Mesh, key: string, ctor: ServiceConstructor<T>) {
         super(mesh, key);
+        this.ctor = this.processClass(ctor);
     }
 
     get(): T {
         if (!this.instance) {
-            this.instance = this.mesh.connect(new this.ctor());
+            const inst = new this.ctor();
+            this.instance = this.mesh.connect(inst);
         }
         return this.instance;
+    }
+
+    protected processClass(ctor: any) {
+        // A fake derived class is created with Mesh attached to its prototype.
+        // This allows accessing deps in constructor whilst preserving instanceof.
+        const derived = class extends ctor {};
+        Object.defineProperty(derived, 'name', { value: ctor.name });
+        this.mesh.injectRef(derived.prototype);
+        return derived;
+    }
+}
+
+export class ClassBinding<T extends Constructor<T>> extends Binding<T> {
+
+    constructor(mesh: Mesh, key: string, readonly ctor: T) {
+        super(mesh, key);
+    }
+
+    get(): T {
+        return this.ctor;
     }
 }
 

@@ -1,6 +1,7 @@
+import { ClassBinding } from '.';
 import { Binding, ConstantBinding, ProxyBinding, ServiceBinding } from './bindings';
-import { MeshInvalidServiceBinding, MeshServiceNotFound } from './errors';
-import { AbstractService, Middleware, ServiceConstructor, ServiceKey } from './types';
+import { MeshInvalidBinding, MeshServiceNotFound } from './errors';
+import { AbstractClass, Constructor, Middleware, ServiceConstructor, ServiceKey } from './types';
 
 export const MESH_REF = Symbol.for('MESH_REF');
 
@@ -16,21 +17,39 @@ export class Mesh {
     }
 
     bind<T>(impl: ServiceConstructor<T>): Binding<T>;
-    bind<T>(key: AbstractService<T> | string, impl: ServiceConstructor<T>): Binding<T>;
-    bind<T>(key: ServiceConstructor<T> | AbstractService<T> | string, impl?: ServiceConstructor<T>): Binding<T> {
+    bind<T>(key: AbstractClass<T> | string, impl: ServiceConstructor<T>): Binding<T>;
+    bind<T>(key: ServiceConstructor<T> | AbstractClass<T> | string, impl?: ServiceConstructor<T>): Binding<T> {
         const k = keyToString(key);
         if (typeof impl === 'function') {
             return this._bindService(k, impl);
         } else if (typeof key === 'function') {
             return this._bindService(k, key);
         }
-        throw new MeshInvalidServiceBinding(String(key));
+        throw new MeshInvalidBinding(String(key));
     }
 
     protected _bindService<T>(k: string, impl: ServiceConstructor<T>): Binding<T> {
         const binding = new ServiceBinding<T>(this, k, impl);
         this.bindings.set(k, binding);
         return new ProxyBinding<T>(this, k, k);
+    }
+
+    class<T extends Constructor<any>>(ctor: T): ClassBinding<T>;
+    class<T extends Constructor<any>>(key: AbstractClass<T> | string, ctor: T): Binding<T>;
+    class<T extends Constructor<any>>(key: T | AbstractClass<T> | string, ctor?: T) {
+        const k = keyToString(key);
+        if (typeof ctor === 'function') {
+            return this._bindClass(k, ctor);
+        } else if (typeof key === 'function') {
+            return this._bindClass(k, key);
+        }
+        throw new MeshInvalidBinding(String(key));
+    }
+
+    protected _bindClass<T extends Constructor<any>>(k: string, ctor: T): ClassBinding<T> {
+        const binding = new ClassBinding(this, k, ctor);
+        this.bindings.set(k, binding);
+        return binding;
     }
 
     constant<T>(key: ServiceKey<T>, value: T): Binding<T> {
@@ -40,7 +59,7 @@ export class Mesh {
         return new ProxyBinding<T>(this, k, k);
     }
 
-    alias<T>(key: AbstractService<T> | string, referenceKey: AbstractService<T> | string): Binding<T> {
+    alias<T>(key: AbstractClass<T> | string, referenceKey: AbstractClass<T> | string): Binding<T> {
         const k = keyToString(key);
         const refK = typeof referenceKey === 'string' ? referenceKey : referenceKey.name;
         const binding = new ProxyBinding<T>(this, k, refK);
@@ -62,7 +81,7 @@ export class Mesh {
 
     connect<T>(value: T): T {
         const res = this.applyMiddleware(value);
-        this.addMeshRef(res);
+        this.injectRef(res);
         return res;
     }
 
@@ -79,7 +98,7 @@ export class Mesh {
         return res;
     }
 
-    protected addMeshRef(value: any) {
+    injectRef(value: any) {
         if (typeof value !== 'object') {
             return;
         }
@@ -89,7 +108,6 @@ export class Mesh {
             configurable: true,
         });
     }
-
 }
 
 function keyToString<T>(key: ServiceKey<T>) {

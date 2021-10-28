@@ -118,4 +118,30 @@ describe('Mesh', () => {
         });
     });
 
+    describe('inject classes', () => {
+        class Session {
+            constructor(readonly sessionId: number) {}
+        }
+
+        class SessionManager {
+            @dep({ key: 'Session' }) Session!: typeof Session;
+
+            createSession(id: number): Session {
+                return new this.Session(id);
+            }
+        }
+
+        it('allows binding classes', () => {
+            const mesh = new Mesh();
+            mesh.class(Session);
+            mesh.bind(SessionManager);
+            const SessionClass = mesh.resolve('Session');
+            assert.strictEqual(SessionClass, Session);
+            const mgr = mesh.resolve(SessionManager);
+            const sess = mgr.createSession(42);
+            assert.ok(sess instanceof Session);
+        });
+
+    });
+
 });

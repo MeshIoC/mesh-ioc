@@ -17,9 +17,9 @@ export class DepInstanceNotConnected extends BaseError {
     }
 }
 
-export class MeshServiceNotFound extends BaseError {
+export class MeshBindingNotFound extends BaseError {
     constructor(meshName: string, serviceKey: string) {
-        super(`Service "${serviceKey}" not found in Mesh "${meshName}"`);
+        super(`"${serviceKey}" not found in Mesh "${meshName}"`);
     }
 }
 

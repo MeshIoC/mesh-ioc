@@ -11,34 +11,25 @@ describe('Mesh', () => {
 
         it('creates an instance of bound service', () => {
             const mesh = new Mesh();
-            const refLogger = mesh.bind(Logger, StandardLogger);
-            const logger = refLogger.get();
+            mesh.service(Logger, StandardLogger);
+            const logger = mesh.resolve(Logger);
             assert.ok(logger instanceof StandardLogger);
         });
 
         it('caches the instance, so the same instance is returned', () => {
             const mesh = new Mesh();
-            const refLogger = mesh.bind(Logger, StandardLogger);
-            const logger1 = refLogger.get();
-            const logger2 = refLogger.get();
+            mesh.service(Logger, StandardLogger);
+            const logger1 = mesh.resolve(Logger);
+            const logger2 = mesh.resolve(Logger);
             assert.ok(logger1 === logger2);
         });
 
-        it('returns another instance if binding has changed', () => {
-            const mesh = new Mesh();
-            const refLogger = mesh.bind(Logger, StandardLogger);
-            const logger1 = refLogger.get();
-            mesh.bind(Logger, TestLogger);
-            const logger2 = refLogger.get();
-            assert.ok(logger1 !== logger2);
-            assert.ok(logger2 instanceof TestLogger);
-        });
     });
 
     describe('resolve', () => {
         it('resolves binding by class name', () => {
             const mesh = new Mesh();
-            mesh.bind(Logger, StandardLogger);
+            mesh.service(Logger, StandardLogger);
             const logger = mesh.resolve<Logger>('Logger');
             assert.ok(logger instanceof StandardLogger);
         });
@@ -47,20 +38,21 @@ describe('Mesh', () => {
     describe('dependency resolution', () => {
         it('resolves dependency decorated with @dep', () => {
             const mesh = new Mesh();
-            const _testLogger = mesh.bind(TestLogger);
+            mesh.service(TestLogger);
             mesh.alias(Logger, TestLogger);
-            const _db = mesh.bind(Database);
-            const db = _db.get();
+            mesh.service(Database);
+            const db = mesh.resolve(Database);
             assert.ok(db.logger instanceof TestLogger);
             db.connect();
-            assert.deepStrictEqual(_testLogger.get().messages, ['Connected to database']);
+            const testLogger = mesh.resolve(TestLogger);
+            assert.deepStrictEqual(testLogger.messages, ['Connected to database']);
         });
     });
 
     describe('connect', () => {
         it('allows connecting "guest" instances so they can use @dep', () => {
             const mesh = new Mesh();
-            mesh.bind(Logger, TestLogger);
+            mesh.service(Logger, TestLogger);
             class Foo {
                 @dep() logger!: Logger;
             }
@@ -73,7 +65,7 @@ describe('Mesh', () => {
     describe('middleware', () => {
         it('applies middleware to bound instances', () => {
             const mesh = new Mesh();
-            mesh.bind(Logger, TestLogger);
+            mesh.service(Logger, TestLogger);
             mesh.use(obj => {
                 Object.defineProperty(obj, 'foo', {
                     value: 42
@@ -110,11 +102,12 @@ describe('Mesh', () => {
 
         it('allows accessing @dep in constructor', () => {
             const mesh = new Mesh();
-            const counter = mesh.bind(Counter);
-            const foo = mesh.bind(Foo);
-            foo.get();
-            assert.strictEqual(counter.get().value, 1);
-            assert.strictEqual(counter.get().constructor.name, 'Counter');
+            mesh.service(Counter);
+            mesh.service(Foo);
+            const counter = mesh.resolve(Counter);
+            mesh.resolve(Foo);
+            assert.strictEqual(counter.value, 1);
+            assert.strictEqual(counter.constructor.name, 'Counter');
         });
     });
 
@@ -122,6 +115,8 @@ describe('Mesh', () => {
         class Session {
             constructor(readonly sessionId: number) {}
         }
+
+        class OtherSession extends Session {}
 
         class SessionManager {
             @dep({ key: 'Session' }) Session!: typeof Session;
@@ -133,13 +128,13 @@ describe('Mesh', () => {
 
         it('allows binding classes', () => {
             const mesh = new Mesh();
-            mesh.class(Session);
-            mesh.bind(SessionManager);
+            mesh.constant('Session', OtherSession);
+            mesh.service(SessionManager);
             const SessionClass = mesh.resolve('Session');
-            assert.strictEqual(SessionClass, Session);
+            assert.strictEqual(SessionClass, OtherSession);
             const mgr = mesh.resolve(SessionManager);
             const sess = mgr.createSession(42);
-            assert.ok(sess instanceof Session);
+            assert.ok(sess instanceof OtherSession);
         });
 
     });

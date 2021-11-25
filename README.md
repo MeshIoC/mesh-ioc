@@ -13,6 +13,78 @@ Mesh IoC solves the problem of dependency management of application services. It
 - 🐓 🥚 Tolerates circular dependencies
 - 🕵️‍♀️ Provides APIs for dependency analysis
 
+## Quick API Cheatsheet
+
+```ts
+// Mesh is an IoC container that stores service bindings and instantiated objects
+const mesh = new Mesh('someName');
+
+// Bindings:
+
+// 1. Service (zero-arg constructor) to itself
+mesh.service(SomeDatabase);
+// 2. Abstract class to service implementation
+mesh.service(Logger, SomeLogger);
+// 3. String key to service (👎 because of limited type support)
+mesh.service('Something', Something);
+// 4. Service to instance
+mesh.constant(SomeService, someServiceInstance);
+// 5. String key to arbitrary constant
+mesh.constant('SessionId', 42);
+// 6. Alias (key to another key)
+mesh.alias('DB', SomeDatabase);
+
+// Methods can also be chained
+mesh.service(MyFoo)
+    .alias(Foo, MyFoo)
+    .constant('Secret', 'supersecret');
+
+// Declarative bindings in services:
+
+class SomeDatabase {
+    @dep() logger!: Logger; // auto-resolved by Mesh
+}
+
+// Manual resolution:
+
+const db = mesh.resolve(SomeDatabase);
+
+// Connect instances:
+
+class User {
+    @dep() db!: MyDatabase;
+}
+
+const user = mesh.connect(new User());  // now user.db will also be resolved by Mesh
+
+// Scopes:
+
+// Declare scoped bindings
+mesh.scope('request')
+    .service(UsersRouter)
+    .service(OrdersRouter);
+
+// Create and use scope
+const request = mesh.createScope('request')
+    // Bind scope-specific data
+    .constant(Request, req)
+    .constant(Response, res);
+
+// Scoped services can use scope-specific data
+class UsersRouter {
+    @dep() req!: Request;
+    @dep() res!: Response;
+}
+
+// Middleware:
+mesh.use(instance => {
+    // Allows modifying instances as they are created or connected
+    // (useful for logging, stats or replacing instances with proxies)
+    console.log('Instantiated', instance);
+    return instance;
+});
+```
+
 ## IoC Recap
 
 [IoC](https://en.wikipedia.org/wiki/Inversion_of_control) when applied to class dependency management states that each component should not resolve their dependencies — instead the dependencies should be provided to each component.
@@ -90,8 +162,9 @@ class Redis {
 // app.ts
 
 class AppMesh extends Mesh {
-    this.bind(Redis);
-    this.bind(Logger, ConsoleLogger);
+    // List all services so that mesh connects them together
+    this.service(Redis);
+    this.service(Logger, ConsoleLogger);
 }
 ```
 
@@ -115,7 +188,7 @@ There are several aspects that differentiate Mesh IoC from the rest of the DI li
 
   - Constant values can be bound to mesh. Those could be instances of other classes.
 
-**Important!** Mesh should be used to track _services_. We defined services as classes with **zero-argument constructors** (this is also enforced by TypeScript). However, there are multiple patterns to support construtor arguments, read on!
+**Important!** Mesh should be used to track _services_. We defined services as classes with **zero-argument constructors** (this is also enforced by TypeScript). However, there are multiple patterns to support constructor arguments, read on!
 
 ## Application Architecture Guide
 
@@ -134,42 +207,35 @@ This short guide briefly explains the basic concepts of a good application archi
     export class App {
         // You can either inherit from Mesh or store it as a field.
         // Name parameter is optional, but can be useful for debugging.
-        mesh = new Mesh('App');
-        // Define your application-scoped services
-        logger = mesh.bind(Logger, GlobalLogger);
-        database = mesh.bind(MyDatabase);
-        server = mesh.bind(MyServer);
-        // ...
+        mesh: Mesh;
+
+        constructor() {
+            this.mesh = new Mesh('App')
+                // Define your application-scoped services
+                .constant(App, this)
+                .service(Logger, GlobalLogger);
+                .service(MyDatabase);
+                .service(MyServer);
+                // Define your session-scoped services
+                .scope('session')
+                .service(Logger, SessionLogger)
+                .service(SessionScopedService);
+        }
 
         start() {
             // Define logic for application startup
             // (e.g. connect to databases, start listening to servers, etc)
-        }
-    }
-
-    // session.ts
-    export class Session {
-        mesh: Mesh;
-
-        // A sample session scope will depend on Request and Response;
-        // Parent mesh is required so that session-scoped services
-        // can access application-scoped services
-        // (the other way around does not work, obviously)
-        constructor(parentMesh: Mesh, req: Request, res: Response) {
-            this.mesh = new Mesh('Session', parentMesh);
-            // Session dependencies can be bound as constants
-            this.mesh.constant(Request, req);
-            this.mesh.constant(Response, req);
-            // Bindings from parent can be overridden, so that session-scoped services
-            // could use more specialized versions
-            this.mesh.bind(Logger, SessionLogger);
-            // Define other session-scoped services
-            this.mesh.bind(SessionScopedService);
-            // ...
+            this.mesh.resolve(MyServer).listen();
         }
 
-        start() {
-            // Define what happens when session is established
+        startSession(req: Request, res: Response) {
+            // Bind session-specific data (e.g. request, response, client web socket, session id, etc)
+            const sessionMesh = this.mesh.createScope('session')
+                // Session-specific data can be bound by session-scoped services
+                .constant(Request, req)
+                .constant(Response, res);
+            // Define logic for session initialisation
+            sessionMesh.resolve(SessionScopedService).doStuff();
         }
     }
     ```
@@ -187,8 +253,7 @@ This short guide briefly explains the basic concepts of a good application archi
 
     ```ts
     export class MyServer {
-        // Note: Mesh is automatically available in all "connected" classes
-        @dep() mesh!: Mesh;
+        @dep() app!: App;
 
         // The actual server (e.g. http server or web socket server)
         server: Server;
@@ -196,9 +261,7 @@ This short guide briefly explains the basic concepts of a good application archi
         constructor() {
             this.server = new Server((req, res) => {
                 // This is the actual entrypoint of Session
-                const session = new Session(this.mesh, req, res);
-                // Note the similarity to application entrypoint
-                session.start();
+                app.startSession(req, res);
             });
         }
     }
@@ -211,7 +274,7 @@ This short guide briefly explains the basic concepts of a good application archi
 
         @dep() database!: Database;
         @dep() req!: Request;
-        @dep() res!: Request;
+        @dep() res!: Response;
 
         // ...
     }
@@ -240,7 +303,7 @@ class User {
     @dep() database!: Database;
 
     // Note: constructor can have arbitrary arguments in this case,
-    // because the instantiated isn't controlled by Mesh
+    // because the instantiation isn't controlled by Mesh
     constructor(
         public firstName = '',
         public lastName = '',
@@ -254,6 +317,7 @@ class User {
 }
 
 class UserService {
+    // Note: Mesh is automatically available in all connected services
     @dep() mesh!: Mesh;
 
     createUser(firstName = '', lastName = '', email = '', /*...*/) {
@@ -265,43 +329,6 @@ class UserService {
 ```
 
 Note: the important limitation of this approach is that `@dep` are not available in entity constructors (e.g. `database` cannot be resolved in `User` constructor, because by the time the instance is instantiated it's not yet connected to the mesh).
-
-### Binding classes
-
-Mesh typically connects the instances of services (again, services are classes with zero-arg constructors).
-
-However, in some cases you may need to instantiate other classes, for example, third-party or with non-zero-arg constructors. You can always do it directly, however, a level of indirection can be introduced by defining a class on Mesh. This can be especially useful in tests where classes can be substituted on Mesh level without changing the implementation.
-
-Example:
-
-```ts
-// An example arbitrary class, unconnected to mesh
-class Session {
-    constructor(readonly sessionId: number) {}
-}
-
-// A normal service connected to mesh
-class SessionManager {
-    // Class constructor is injected (note: `key` is required because it cannot be deferred in this case)
-    @dep({ key: 'Session' }) Session!: typeof Session;
-
-    createSession(id: number): Session {
-        // Instantiate using injected constructor
-        return new this.Session(id);
-    }
-}
-
-// ...
-const mesh = new Mesh();
-mesh.bind(SessionManager);
-mesh.class(Session); // This makes Session class available as a binding
-
-// In tests this can be overridden, so SessionManager will transparently instantiate a different class
-// (assuming constructor signatures match)
-mesh.class(Session, MySession);
-```
-
-This approach can also be combined with `connect` so that the arbitrary class can also use `@dep`. Mix & match FTW!
 
 ## License
 

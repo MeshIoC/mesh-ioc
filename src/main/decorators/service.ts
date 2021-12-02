@@ -1,6 +1,6 @@
 import { ServiceMetadata } from '../types';
 
-export const svcMetadata: ServiceMetadata[] = [];
+export const serviceMetadata: ServiceMetadata[] = [];
 
 export interface SvcOptions {
     alias?: string;
@@ -9,7 +9,7 @@ export interface SvcOptions {
 
 export function service(options: SvcOptions = {}) {
     return function(target: any) {
-        svcMetadata.push({
+        serviceMetadata.push({
             class: target,
             ...options,
         });

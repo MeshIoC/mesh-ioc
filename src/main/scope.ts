@@ -1,9 +1,6 @@
-import { Binding } from './bindings';
 import { MeshInvalidBinding } from './errors';
-import { AbstractClass, ServiceConstructor, ServiceKey } from './types';
+import { AbstractClass, Binding, ServiceConstructor, ServiceKey } from './types';
 import { keyToString } from './util';
-
-export const MESH_REF = Symbol.for('MESH_REF');
 
 export class Scope {
     bindings = new Map<string, Binding<any>>();

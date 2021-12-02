@@ -14,3 +14,33 @@ export type AbstractClass<T> = {
 export type ServiceKey<T> = ServiceConstructor<T> | AbstractClass<T> | string;
 
 export type Middleware = (instance: any) => any;
+
+export type Binding<T> = ConstantBinding<T> | ServiceBinding<T> | AliasBinding;
+
+export type ConstantBinding<T> = {
+    type: 'constant';
+    value: T;
+};
+
+export type ServiceBinding<T> = {
+    type: 'service';
+    class: ServiceConstructor<T>;
+};
+
+export type AliasBinding = {
+    type: 'alias';
+    key: string;
+}
+
+export interface DepMetadata {
+    className: string;
+    propertyName: string;
+    designTypeName: string;
+    key: string;
+}
+
+export interface ServiceMetadata {
+    class: ServiceConstructor<any>;
+    alias?: string;
+    metadata?: any;
+}

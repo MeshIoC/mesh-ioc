@@ -1,8 +1,14 @@
 import 'reflect-metadata';
 
-import { DepInstanceNotConnected, DepKeyNotInferred } from './errors';
-import { Mesh, MESH_REF } from './mesh';
-import { depMetadata } from './metadata';
+import { DepInstanceNotConnected, DepKeyNotInferred } from '../errors';
+import { Mesh, MESH_REF } from '../mesh';
+import { DepMetadata } from '../types';
+
+export const depMetadata: DepMetadata[] = [];
+
+export interface DepOptions {
+    key?: string;
+}
 
 export function dep(options: DepOptions = {}) {
     return function(target: any, propertyName: string) {
@@ -28,8 +34,4 @@ export function dep(options: DepOptions = {}) {
             }
         });
     };
-}
-
-export interface DepOptions {
-    key?: string;
 }

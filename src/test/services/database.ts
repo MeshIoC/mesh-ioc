@@ -1,4 +1,4 @@
-import { dep } from '../../main/decorators';
+import { dep } from '../../main/decorators/dep';
 import { Logger } from './logger';
 
 export class Database {

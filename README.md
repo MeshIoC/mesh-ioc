@@ -6,7 +6,7 @@ Mesh IoC solves the problem of dependency management of application services. It
 
 ## Key features
 
-- 👗 Very slim — about 4KB minified, even less gzipped
+- 👗 Very slim — about 2KB minified, few hundred bytes gzipped
 - ⚡️ Blazing fast
 - 🧩 Flexible and composable
 - 🌿 Ergonomic

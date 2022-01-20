@@ -9,6 +9,7 @@ describe('Scopes', () => {
     class ScopedService {
         @dep({ key: 'SessionId' }) sessionId!: string;
         @dep() shared!: SharedService;
+        @dep() sessionMesh!: Mesh;
     }
 
     class AnotherScopedService {
@@ -58,6 +59,12 @@ describe('Scopes', () => {
         const sharedServiceA = reqA.resolve(SharedService);
         const sharedServiceB = reqB.resolve(SharedService);
         assert.ok(sharedServiceA === sharedServiceB);
+    });
+
+    it('injects scoped mesh in scoped service', () => {
+        const req = mesh.createScope('session').constant('SessionId', 'A');
+        const service = req.resolve(ScopedService);
+        assert.strictEqual(service.sessionMesh.name, 'session');
     });
 
 });

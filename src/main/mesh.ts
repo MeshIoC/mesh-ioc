@@ -14,8 +14,9 @@ export class Mesh {
     constructor(
         public name: string = 'default',
         public parent: Mesh | undefined = undefined,
+        scope?: Scope
     ) {
-        this.currentScope = new Scope(name);
+        this.currentScope = scope ?? new Scope(name);
         this.currentScope.constant('Mesh', this);
     }
 
@@ -78,8 +79,8 @@ export class Mesh {
     createScope(scopeId: string, scopeName: string = scopeId): Mesh {
         const childScope = this.childScopes.get(scopeId);
         const newScope = new Scope(scopeName, childScope ?? []);
-        const mesh = new Mesh(scopeId, this);
-        mesh.currentScope = newScope;
+        const mesh = new Mesh(scopeId, this, newScope);
+        // mesh.currentScope = newScope;
         return mesh;
     }
 

@@ -80,7 +80,6 @@ export class Mesh {
         const childScope = this.childScopes.get(scopeId);
         const newScope = new Scope(scopeName, childScope ?? []);
         const mesh = new Mesh(scopeId, this, newScope);
-        // mesh.currentScope = newScope;
         return mesh;
     }
 

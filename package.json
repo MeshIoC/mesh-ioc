@@ -15,7 +15,7 @@
         "test": "NODE_ENV=test mocha",
         "preversion": "npm run lint",
         "version": "npm run compile",
-        "postversion": "npm publish --access=public"
+        "postversion": "npm publish --access=public && git push origin main --tags"
     },
     "pre-commit": [
         "lint"

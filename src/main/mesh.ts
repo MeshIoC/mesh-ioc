@@ -38,6 +38,15 @@ export class Mesh {
     }
 
     resolve<T>(key: ServiceKey<T>): T {
+        const instance = this.tryResolve(key);
+        if (instance === undefined) {
+            const k = keyToString(key);
+            throw new MeshBindingNotFound(this.name, k);
+        }
+        return instance;
+    }
+
+    tryResolve<T>(key: ServiceKey<T>): T | undefined {
         const k = keyToString(key);
         let instance = this.instances.get(k);
         if (instance) {
@@ -51,9 +60,9 @@ export class Mesh {
             return instance;
         }
         if (this.parent) {
-            return this.parent.resolve(key);
+            return this.parent.tryResolve(key);
         }
-        throw new MeshBindingNotFound(this.name, k);
+        return undefined;
     }
 
     connect<T>(value: T): T {

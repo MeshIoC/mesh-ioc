@@ -33,6 +33,31 @@ describe('Mesh', () => {
             const logger = mesh.resolve<Logger>('Logger');
             assert.ok(logger instanceof StandardLogger);
         });
+
+        it('throws if not found', () => {
+            const mesh = new Mesh();
+            try {
+                mesh.resolve<Logger>('Logger');
+                throw new Error('UnexpectedSuccess');
+            } catch (err: any) {
+                assert.strictEqual(err.name, 'MeshBindingNotFound');
+            }
+        });
+    });
+
+    describe('tryResolve', () => {
+        it('resolves binding by class name', () => {
+            const mesh = new Mesh();
+            mesh.service(Logger, StandardLogger);
+            const logger = mesh.tryResolve<Logger>('Logger');
+            assert.ok(logger instanceof StandardLogger);
+        });
+
+        it('returns undefined if not found', () => {
+            const mesh = new Mesh();
+            const logger = mesh.tryResolve<Logger>('Logger');
+            assert.strictEqual(logger, undefined);
+        });
     });
 
     describe('dependency resolution', () => {

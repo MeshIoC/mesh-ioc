@@ -4,6 +4,17 @@ import { keyToString } from './util';
 
 export const MESH_REF = Symbol.for('MESH_REF');
 
+/**
+ * An IoC container.
+ *
+ * Encapsulates bindings — a map that allows to associate a _service key_ with a way to obtain an instance.
+ *
+ * Three binding types are supported via corresponding methods:
+ *
+ * - `service` — a zero-arg constructor mapping; these will be instantiated on demand and cached in this mesh
+ * - `constant` — an instance of a class (can be bound by using class as service name) or an arbitrary value bound by a string key
+ * - `alias` — a "redirect" mapping, useful in tests
+ */
 export class Mesh {
     bindings = new Map<string, Binding<any>>();
     instances = new Map<string, any>();
@@ -16,6 +27,13 @@ export class Mesh {
 
     *[Symbol.iterator]() {
         yield* this.bindings.entries();
+    }
+
+    clone(): Mesh {
+        const clone = new Mesh();
+        clone.parent = this.parent;
+        clone.bindings = new Map(this.bindings);
+        return clone;
     }
 
     service<T>(impl: ServiceConstructor<T>): this;

@@ -203,7 +203,7 @@ With IoC the "app" term gets a well-defined meaning: `App` is a composition root
 
 For application scope one must make sure that only a single `mesh` instance is maintained throughout a lifecycle:
 
-```
+```ts
 // src/main/app.ts
 export class App {
     mesh = new Mesh('App');
@@ -251,7 +251,7 @@ app.start()
 
 Test runtime can create a fresh `App` instance on every test case, e.g.:
 
-```
+```ts
 // src/test/runtime.ts
 import { App } from '../main/app.js';
 

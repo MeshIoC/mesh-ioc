@@ -23,7 +23,9 @@ export class Mesh {
     constructor(
         public name: string = 'default',
         public parent: Mesh | undefined = undefined,
-    ) {}
+    ) {
+        this.constant(Mesh, this);
+    }
 
     *[Symbol.iterator]() {
         yield* this.bindings.entries();

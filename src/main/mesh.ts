@@ -1,39 +1,47 @@
-import { MeshBindingNotFound } from './errors';
-import { Scope } from './scope';
+import { MeshBindingNotFound, MeshInvalidBinding } from './errors';
 import { AbstractClass, Binding, Middleware, ServiceConstructor, ServiceKey } from './types';
 import { keyToString } from './util';
 
 export const MESH_REF = Symbol.for('MESH_REF');
 
 export class Mesh {
-    currentScope: Scope;
-    childScopes = new Map<string, Scope>();
+    bindings = new Map<string, Binding<any>>();
     instances = new Map<string, any>();
     middlewares: Middleware[] = [];
 
     constructor(
         public name: string = 'default',
         public parent: Mesh | undefined = undefined,
-        scope?: Scope
-    ) {
-        this.currentScope = scope ?? new Scope(name);
-        this.currentScope.constant('Mesh', this);
+    ) {}
+
+    *[Symbol.iterator]() {
+        yield* this.bindings.entries();
     }
 
     service<T>(impl: ServiceConstructor<T>): this;
     service<T>(key: AbstractClass<T> | string, impl: ServiceConstructor<T>): this;
     service<T>(key: ServiceConstructor<T> | AbstractClass<T> | string, impl?: ServiceConstructor<T>): this {
-        (this.currentScope.service as any)(key, impl);
-        return this;
+        const k = keyToString(key);
+        if (typeof impl === 'function') {
+            this.bindings.set(k, { type: 'service', class: impl });
+            return this;
+        } else if (typeof key === 'function') {
+            this.bindings.set(k, { type: 'service', class: key });
+            return this;
+        }
+        throw new MeshInvalidBinding(String(key));
     }
 
     constant<T>(key: ServiceKey<T>, value: T): this {
-        this.currentScope.constant(key, value);
+        const k = keyToString(key);
+        this.bindings.set(k, { type: 'constant', value });
         return this;
     }
 
-    alias<T>(key: AbstractClass<T> | string, referenceKey: AbstractClass<T> | string): this {
-        this.currentScope.alias(key, referenceKey);
+    alias<T>(key: AbstractClass<T> | string, referenceKey: AbstractClass<T> | string) {
+        const k = keyToString(key);
+        const refK = keyToString(referenceKey);
+        this.bindings.set(k, { type: 'alias', key: refK });
         return this;
     }
 
@@ -52,7 +60,7 @@ export class Mesh {
         if (instance) {
             return instance;
         }
-        const binding = this.currentScope.bindings.get(k);
+        const binding = this.bindings.get(k);
         if (binding) {
             instance = this.instantiate(binding);
             instance = this.connect(instance);
@@ -74,22 +82,6 @@ export class Mesh {
     use(fn: Middleware): this {
         this.middlewares.push(fn);
         return this;
-    }
-
-    scope(scopeId: string): Scope {
-        let scope = this.childScopes.get(scopeId);
-        if (!scope) {
-            scope = new Scope(scopeId);
-            this.childScopes.set(scopeId, scope);
-        }
-        return scope;
-    }
-
-    createScope(scopeId: string, scopeName: string = scopeId): Mesh {
-        const childScope = this.childScopes.get(scopeId);
-        const newScope = new Scope(scopeName, childScope ?? []);
-        const mesh = new Mesh(scopeId, this, newScope);
-        return mesh;
     }
 
     protected instantiate<T>(binding: Binding<T>): T {

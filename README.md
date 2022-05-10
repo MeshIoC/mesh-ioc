@@ -13,7 +13,7 @@ Mesh IoC solves the problem of dependency management of application services. It
 - 🐓 🥚 Tolerates circular dependencies
 - 🕵️‍♀️ Provides APIs for dependency analysis
 
-## Quick API Cheatsheet
+## API Cheatsheet
 
 ```ts
 // Mesh is an IoC container that stores service bindings and instantiated objects

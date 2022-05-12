@@ -65,8 +65,8 @@ export class Mesh {
         return this;
     }
 
-    resolve<T>(key: ServiceKey<T>): T {
-        const instance = this.tryResolve(key);
+    resolve<T>(key: ServiceKey<T>, recursive = true): T {
+        const instance = this.tryResolve(key, recursive);
         if (instance === undefined) {
             const k = keyToString(key);
             throw new MeshBindingNotFound(this.name, k);
@@ -74,7 +74,7 @@ export class Mesh {
         return instance;
     }
 
-    tryResolve<T>(key: ServiceKey<T>): T | undefined {
+    tryResolve<T>(key: ServiceKey<T>, recursive = true): T | undefined {
         const k = keyToString(key);
         let instance = this.instances.get(k);
         if (instance) {
@@ -87,7 +87,7 @@ export class Mesh {
             this.instances.set(k, instance);
             return instance;
         }
-        if (this.parent) {
+        if (recursive && this.parent) {
             return this.parent.tryResolve(key);
         }
         return undefined;

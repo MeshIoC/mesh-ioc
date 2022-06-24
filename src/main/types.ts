@@ -38,9 +38,3 @@ export interface DepMetadata {
     designTypeName: string;
     key: string;
 }
-
-export interface ServiceMetadata {
-    class: ServiceConstructor<any>;
-    alias?: string;
-    metadata?: any;
-}

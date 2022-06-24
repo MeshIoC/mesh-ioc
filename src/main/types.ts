@@ -38,3 +38,8 @@ export interface DepMetadata {
     designTypeName: string;
     key: string;
 }
+
+export interface ServiceHandler {
+    target: any;
+    methodName: string;
+}

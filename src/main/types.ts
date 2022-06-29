@@ -33,7 +33,7 @@ export type AliasBinding = {
 }
 
 export interface DepMetadata {
-    className: string;
+    class: any;
     propertyName: string;
     designTypeName: string;
     key: string;

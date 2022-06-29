@@ -19,7 +19,7 @@ export function dep(options: DepOptions = {}) {
             throw new DepKeyNotInferred(className, propertyName);
         }
         depMetadata.push({
-            className,
+            class: target.constructor,
             propertyName,
             designTypeName: designType.name,
             key,

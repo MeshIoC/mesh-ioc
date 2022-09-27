@@ -1,6 +1,6 @@
 {
     "name": "@flexent/mesh",
-    "version": "1.0.0",
+    "version": "0.0.0",
     "description": "Powerful and Lightweight IoC Library",
     "type": "module",
     "sideEffects": false,

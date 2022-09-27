@@ -1,6 +1,6 @@
-import { MeshBindingNotFound, MeshInvalidBinding } from './errors';
-import { AbstractClass, Binding, Middleware, ServiceConstructor, ServiceKey } from './types';
-import { keyToString } from './util';
+import { MeshBindingNotFound, MeshInvalidBinding } from './errors.js';
+import { AbstractClass, Binding, Middleware, ServiceConstructor, ServiceKey } from './types.js';
+import { keyToString } from './util.js';
 
 export const MESH_REF = Symbol.for('MESH_REF');
 

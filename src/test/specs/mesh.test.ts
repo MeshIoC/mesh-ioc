@@ -1,8 +1,9 @@
 import assert from 'assert';
 
-import { Mesh } from '../../main/mesh';
-import { Database } from '../services/database';
-import { Logger, StandardLogger, TestLogger } from '../services/logger';
+import { dep } from '../../main/index.js';
+import { Mesh } from '../../main/mesh.js';
+import { Database } from '../services/database.js';
+import { Logger, StandardLogger, TestLogger } from '../services/logger.js';
 
 describe('Mesh', () => {
 

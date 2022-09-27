@@ -1,5 +1,5 @@
 class BaseError extends Error {
-    name = this.constructor.name;
+    override name = this.constructor.name;
 }
 
 export class DepKeyNotInferred extends BaseError {

@@ -1,4 +1,5 @@
-import { Logger } from './logger';
+import { dep } from '../../main/index.js';
+import { Logger } from './logger.js';
 
 export class Database {
     @dep() logger!: Logger;

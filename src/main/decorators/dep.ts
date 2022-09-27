@@ -1,8 +1,8 @@
 import 'reflect-metadata';
 
-import { DepInstanceNotConnected, DepKeyNotInferred } from '../errors';
-import { Mesh, MESH_REF } from '../mesh';
-import { DepMetadata } from '../types';
+import { DepInstanceNotConnected, DepKeyNotInferred } from '../errors.js';
+import { Mesh, MESH_REF } from '../mesh.js';
+import { DepMetadata } from '../types.js';
 
 export const depMetadata: DepMetadata[] = [];
 

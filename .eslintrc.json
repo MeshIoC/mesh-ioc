@@ -1,9 +1,8 @@
 {
     "extends": [
-        "@ubio/eslint-config"
+        "@flexent/eslint-config"
     ],
     "rules": {
-        "no-console": 0,
-        "unused-imports/no-unused-imports-ts": 0
+        "no-console": 0
     }
 }

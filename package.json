@@ -39,11 +39,11 @@
     "author": "Boris Okunskiy",
     "license": "ISC",
     "devDependencies": {
+        "@flexent/eslint-config": "^1.0.0",
         "@types/mocha": "^8.2.3",
         "@types/node": "^16.3.1",
-        "@ubio/eslint-config": "^1.1.6",
         "chalk": "^4.1.2",
-        "eslint": "^7.30.0",
+        "eslint": "^8.24.0",
         "mocha": "^9.0.2",
         "pre-commit": "^1.2.2",
         "reflect-metadata": "^0.1.13",

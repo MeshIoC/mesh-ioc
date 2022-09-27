@@ -11,7 +11,7 @@ export interface DepOptions {
 }
 
 export function dep(options: DepOptions = {}) {
-    return function(target: any, propertyName: string) {
+    return function (target: any, propertyName: string) {
         const className = target.constructor.name;
         const designType = Reflect.getMetadata('design:type', target, propertyName) as Function;
         const key = options.key ?? designType?.name;

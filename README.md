@@ -6,12 +6,16 @@ Mesh IoC solves the problem of dependency management of application services. It
 
 ## Key features
 
+- 🔥 Zero dependencies
 - 👗 Very slim — about 2KB minified, few hundred bytes gzipped
+- 💻 Works in browser
+- 🌳 Ergonomic
+- 🗜 Tidy and compact
+- 🔬 Strongly typed and introspectable
 - ⚡️ Blazing fast
 - 🧩 Flexible and composable
-- 🌿 Ergonomic
-- 🐓 🥚 Tolerates circular dependencies
 - 🕵️‍♀️ Provides APIs for dependency analysis
+- 🐓 🥚 Tolerates circular dependencies
 
 ## API Cheatsheet
 

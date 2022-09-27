@@ -1,16 +1,22 @@
 {
     "compilerOptions": {
-        "module": "commonjs",
-        "moduleResolution": "node",
-        "target": "ES2015",
+        "target": "ES2020",
+        "module": "ESNext",
+        "moduleResolution": "NodeNext",
         "strict": true,
+        "skipLibCheck": true,
+        "sourceMap": true,
         "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+        "noImplicitOverride": true,
         "composite": true,
-        "lib": ["ES2015"],
-        "rootDir": "src",
-        "outDir": "out",
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
+        "lib": [
+            "ES2015"
+        ],
+        "rootDir": "src",
+        "outDir": "out",
     },
     "include": [
         "src"

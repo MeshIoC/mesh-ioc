@@ -1,6 +1,5 @@
 import assert from 'assert';
 
-import { dep } from '../../main';
 import { Mesh } from '../../main/mesh';
 import { Database } from '../services/database';
 import { Logger, StandardLogger, TestLogger } from '../services/logger';

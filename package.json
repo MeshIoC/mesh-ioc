@@ -1,7 +1,12 @@
 {
-    "name": "mesh-ioc",
-    "version": "2.2.3",
-    "description": "Mesh: Powerful and Lightweight IoC Library",
+    "name": "@flexent/mesh",
+    "version": "1.0.0",
+    "description": "Powerful and Lightweight IoC Library",
+    "type": "module",
+    "sideEffects": false,
+    "exports": {
+        ".": "./out/main/index.js"
+    },
     "main": "out/main/index.js",
     "types": "out/main/index.d.ts",
     "files": [
@@ -22,7 +27,7 @@
     ],
     "repository": {
         "type": "git",
-        "url": "git+ssh://git@github.com/inca/mesh-ioc.git"
+        "url": "git+ssh://git@github.com/flexent/mesh.git"
     },
     "keywords": [
         "ioc",

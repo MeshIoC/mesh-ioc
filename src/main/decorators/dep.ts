@@ -8,7 +8,7 @@ export const depMetadata: DepMetadata[] = [];
 
 export interface DepOptions {
     key?: string;
-    resolveOnce?: boolean;
+    cache?: boolean;
 }
 
 export function dep(options: DepOptions = {}) {
@@ -16,7 +16,7 @@ export function dep(options: DepOptions = {}) {
         const className = target.constructor.name;
         const designType = Reflect.getMetadata('design:type', target, propertyName) as Function;
         const key = options.key ?? designType?.name;
-        const resolveOnce = options.resolveOnce ?? true;
+        const cache = options.cache ?? true;
         if (!key) {
             throw new DepKeyNotInferred(className, propertyName);
         }
@@ -34,7 +34,7 @@ export function dep(options: DepOptions = {}) {
                     throw new DepInstanceNotConnected(className, propertyName);
                 }
                 const value = mesh.resolve(key);
-                if (resolveOnce) {
+                if (cache) {
                     Object.defineProperty(this, propertyName, {
                         configurable: true,
                         value

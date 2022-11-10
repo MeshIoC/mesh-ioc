@@ -35,7 +35,7 @@ export function dep(options: DepOptions = {}) {
                 }
                 const value = mesh.resolve(key);
                 if (resolveOnce) {
-                    Object.defineProperty(target, propertyName, {
+                    Object.defineProperty(this, propertyName, {
                         configurable: true,
                         value
                     });

@@ -1,8 +1,5 @@
 {
     "extends": [
-        "@flexent/eslint-config"
-    ],
-    "rules": {
-        "no-console": 0
-    }
+        "@nodescript/eslint-config"
+    ]
 }

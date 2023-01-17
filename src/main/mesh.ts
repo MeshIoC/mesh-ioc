@@ -58,10 +58,16 @@ export class Mesh {
         return this;
     }
 
-    alias<T>(key: AbstractClass<T> | string, referenceKey: AbstractClass<T> | string) {
+    alias<T>(key: AbstractClass<T> | string, referenceKey: AbstractClass<T> | string): this {
         const k = keyToString(key);
         const refK = keyToString(referenceKey);
         this.bindings.set(k, { type: 'alias', key: refK });
+        return this;
+    }
+
+    delete<T>(key: ServiceKey<T>): this {
+        const k = keyToString(key);
+        this.bindings.delete(k);
         return this;
     }
 

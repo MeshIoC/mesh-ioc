@@ -15,7 +15,7 @@
     "scripts": {
         "clean": "rm -rf out *.tsbuildinfo",
         "dev": "npm run clean && tsc -b -w",
-        "compile": "tsc -b",
+        "compile": "npm run clean && tsc -b",
         "lint": "eslint --ext=.js,.ts,.vue --cache .",
         "test": "NODE_ENV=test mocha",
         "preversion": "npm run lint",

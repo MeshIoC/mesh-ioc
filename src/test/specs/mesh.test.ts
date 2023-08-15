@@ -130,9 +130,10 @@ describe('Mesh', () => {
             mesh.service(Counter);
             mesh.service(Foo);
             const counter = mesh.resolve(Counter);
-            mesh.resolve(Foo);
+            const foo = mesh.resolve(Foo);
             assert.strictEqual(counter.value, 1);
             assert.strictEqual(counter.constructor.name, 'Counter');
+            assert.strictEqual(foo.counter.value, 1);
         });
     });
 

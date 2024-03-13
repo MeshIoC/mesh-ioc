@@ -1,8 +1,8 @@
 import 'reflect-metadata';
 
-import { DepInstanceNotConnected, DepKeyNotInferred } from '../errors.js';
-import { Mesh, MESH_REF } from '../mesh.js';
-import { DepMetadata } from '../types.js';
+import { DepInstanceNotConnected, DepKeyNotInferred } from './errors.js';
+import { Mesh, MESH_REF } from './mesh.js';
+import { Constructor, DepMetadata } from './types.js';
 
 export const depMetadata: DepMetadata[] = [];
 
@@ -44,4 +44,8 @@ export function dep(options: DepOptions = {}) {
             },
         });
     };
+}
+
+export function getClassDeps(ctor: Constructor<any>) {
+    return depMetadata.filter(_ => _.class === ctor);
 }

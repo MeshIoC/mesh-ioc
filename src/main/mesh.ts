@@ -1,5 +1,6 @@
+import { getClassDeps } from './dep.js';
 import { MeshBindingNotFound, MeshInvalidBinding } from './errors.js';
-import { AbstractClass, Binding, Middleware, ServiceConstructor, ServiceKey } from './types.js';
+import { AbstractClass, Binding, Constructor, DepMetadata, Middleware, ServiceConstructor, ServiceKey } from './types.js';
 import { keyToString } from './util.js';
 
 export const MESH_REF = Symbol.for('MESH_REF');
@@ -11,9 +12,9 @@ export const MESH_REF = Symbol.for('MESH_REF');
  *
  * Three binding types are supported via corresponding methods:
  *
- * - `service` — a zero-arg constructor mapping; these will be instantiated on demand and cached in this mesh
+ * - `service` — a zero-arg constructor mapping; these will be instantiated on demand and cached in a mesh instance
  * - `constant` — an instance of a class (can be bound by using class as service name) or an arbitrary value bound by a string key
- * - `alias` — a "redirect" mapping, useful in tests
+ * - `alias` — a "redirect" mapping, resolves a key into another key from the same mesh; useful in tests
  */
 export class Mesh {
     bindings = new Map<string, Binding<any>>();
@@ -36,6 +37,17 @@ export class Mesh {
         clone.parent = this.parent;
         clone.bindings = new Map(this.bindings);
         return clone;
+    }
+
+    connect<T>(value: T): T {
+        const res = this.applyMiddleware(value);
+        this.injectRef(res);
+        return res;
+    }
+
+    use(fn: Middleware): this {
+        this.middlewares.push(fn);
+        return this;
     }
 
     service<T>(impl: ServiceConstructor<T>): this;
@@ -99,18 +111,58 @@ export class Mesh {
         return undefined;
     }
 
-    connect<T>(value: T): T {
-        const res = this.applyMiddleware(value);
-        this.injectRef(res);
-        return res;
+    getBinding<T>(key: ServiceKey<T>, recursive = true): Binding<T> | undefined {
+        const k = keyToString(key);
+        const binding = this.bindings.get(k);
+        if (binding) {
+            return binding;
+        }
+        if (recursive && this.parent) {
+            return this.parent.getBinding(key);
+        }
+        return undefined;
     }
 
-    use(fn: Middleware): this {
-        this.middlewares.push(fn);
-        return this;
+    *allBindings(): Iterable<[string, Binding<any>]> {
+        yield* this.bindings.entries();
+        if (this.parent) {
+            yield* this.parent.allBindings();
+        }
     }
 
-    protected instantiate<T>(binding: Binding<T>): T {
+    *missingDeps(): Iterable<DepMetadata> {
+        for (const dep of this.allDeps()) {
+            if (!this.getBinding(dep.key)) {
+                yield dep;
+            }
+        }
+    }
+
+    *allDeps(): Iterable<DepMetadata> {
+        const visitedKeys = new Set<string>();
+        for (const [, binding] of this.allBindings()) {
+            if (binding.type === 'service') {
+                yield* this.traverseClassDeps(binding.class, visitedKeys);
+            }
+        }
+    }
+
+    *traverseClassDeps(ctor: Constructor<any>, visitedKeys = new Set<string>()): Iterable<DepMetadata> {
+        const deps = getClassDeps(ctor);
+        for (const dep of deps) {
+            if (visitedKeys.has(dep.key)) {
+                continue;
+            }
+            visitedKeys.add(dep.key);
+            yield dep;
+            const binding = this.getBinding(dep.key);
+            if (binding?.type === 'service') {
+                yield *this.traverseClassDeps(binding.class, visitedKeys);
+            }
+        }
+    }
+
+    instantiate<T>(binding: Binding<T>): T {
         switch (binding.type) {
             case 'alias':
                 return this.resolve(binding.key);

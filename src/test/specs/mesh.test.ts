@@ -27,6 +27,7 @@ describe('Mesh', () => {
     });
 
     describe('resolve', () => {
+
         it('resolves binding by class name', () => {
             const mesh = new Mesh();
             mesh.service(Logger, StandardLogger);
@@ -43,9 +44,11 @@ describe('Mesh', () => {
                 assert.strictEqual(err.name, 'MeshBindingNotFound');
             }
         });
+
     });
 
     describe('tryResolve', () => {
+
         it('resolves binding by class name', () => {
             const mesh = new Mesh();
             mesh.service(Logger, StandardLogger);
@@ -58,9 +61,26 @@ describe('Mesh', () => {
             const logger = mesh.tryResolve<Logger>('Logger');
             assert.strictEqual(logger, undefined);
         });
+
+    });
+
+    describe('allBindings', () => {
+
+        it('returns all bidings recursively', () => {
+            const parentMesh = new Mesh('Parent');
+            parentMesh.service(class Foo {});
+            parentMesh.service(class Bar {});
+            const childMesh = new Mesh('Child', parentMesh);
+            childMesh.service(class Baz {});
+            const bindings = [...childMesh.allBindings()];
+            const keys = bindings.map(_ => _[0]);
+            assert.deepStrictEqual(keys, ['Mesh', 'Baz', 'Mesh', 'Foo', 'Bar']);
+        });
+
     });
 
     describe('dependency resolution', () => {
+
         it('resolves dependency decorated with @dep', () => {
             const mesh = new Mesh();
             mesh.service(TestLogger);
@@ -72,9 +92,11 @@ describe('Mesh', () => {
             const testLogger = mesh.resolve(TestLogger);
             assert.deepStrictEqual(testLogger.messages, ['Connected to database']);
         });
+
     });
 
     describe('connect', () => {
+
         it('allows connecting "guest" instances so they can use @dep', () => {
             const mesh = new Mesh();
             mesh.service(Logger, TestLogger);
@@ -85,9 +107,11 @@ describe('Mesh', () => {
             mesh.connect(foo);
             assert.ok(foo.logger instanceof TestLogger);
         });
+
     });
 
     describe('middleware', () => {
+
         it('applies middleware to bound instances', () => {
             const mesh = new Mesh();
             mesh.service(Logger, TestLogger);
@@ -107,6 +131,7 @@ describe('Mesh', () => {
             assert.strictEqual((logger as any).foo, 42);
             assert.strictEqual((logger as any).bar, 24);
         });
+
     });
 
     describe('use deps in constructor', () => {
@@ -138,6 +163,7 @@ describe('Mesh', () => {
     });
 
     describe('inject classes', () => {
+
         class Session {
             constructor(readonly sessionId: number) {}
         }
@@ -161,6 +187,50 @@ describe('Mesh', () => {
             const mgr = mesh.resolve(SessionManager);
             const sess = mgr.createSession(42);
             assert.ok(sess instanceof OtherSession);
+        });
+
+    });
+
+    describe('dependency analysis', () => {
+
+        class Foo { }
+
+        class Bar {
+            @dep() foo!: Foo;
+        }
+
+        class Baz {
+            @dep() foo!: Foo;
+            @dep({ key: 'Config' }) config!: any;
+        }
+
+        class Qux {
+            @dep() bar!: Bar;
+            @dep() baz!: Baz;
+        }
+
+        it('allDep returns all dependencies encountered in bindings attached to Mesh', () => {
+            const parentMesh = new Mesh('Parent');
+            parentMesh.service(Foo);
+            parentMesh.service(Bar);
+            parentMesh.constant('Config', 'some value');
+            const childMesh = new Mesh('Child', parentMesh);
+            childMesh.service(Baz);
+            childMesh.service(Qux);
+            const deps = [...childMesh.allDeps()];
+            const depKeys = deps.map(_ => _.key).sort();
+            assert.deepStrictEqual(depKeys, ['Bar', 'Baz', 'Config', 'Foo']);
+        });
+
+        it('missingDeps returns unsatisfied dependencies', () => {
+            const parentMesh = new Mesh('Parent');
+            parentMesh.service(Bar);
+            const childMesh = new Mesh('Child', parentMesh);
+            childMesh.service(Baz);
+            childMesh.service(Qux);
+            const deps = [...childMesh.missingDeps()];
+            const depKeys = deps.map(_ => _.key).sort();
+            assert.deepStrictEqual(depKeys, ['Config', 'Foo']);
         });
 
     });

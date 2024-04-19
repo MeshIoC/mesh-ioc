@@ -47,5 +47,12 @@ export function dep(options: DepOptions = {}) {
 }
 
 export function getClassDeps(ctor: Constructor<any>) {
-    return depMetadata.filter(_ => _.class === ctor);
+    const result: DepMetadata[] = [];
+    let proto = ctor;
+    while (proto !== Object.prototype) {
+        const deps = depMetadata.filter(_ => _.class === proto);
+        result.push(...deps);
+        proto = Object.getPrototypeOf(proto);
+    }
+    return result;
 }

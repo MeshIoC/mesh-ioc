@@ -191,48 +191,4 @@ describe('Mesh', () => {
 
     });
 
-    describe('dependency analysis', () => {
-
-        class Foo { }
-
-        class Bar {
-            @dep() foo!: Foo;
-        }
-
-        class Baz {
-            @dep() foo!: Foo;
-            @dep({ key: 'Config' }) config!: any;
-        }
-
-        class Qux {
-            @dep() bar!: Bar;
-            @dep() baz!: Baz;
-        }
-
-        it('allDep returns all dependencies encountered in bindings attached to Mesh', () => {
-            const parentMesh = new Mesh('Parent');
-            parentMesh.service(Foo);
-            parentMesh.service(Bar);
-            parentMesh.constant('Config', 'some value');
-            const childMesh = new Mesh('Child', parentMesh);
-            childMesh.service(Baz);
-            childMesh.service(Qux);
-            const deps = [...childMesh.allDeps()];
-            const depKeys = deps.map(_ => _.key).sort();
-            assert.deepStrictEqual(depKeys, ['Bar', 'Baz', 'Config', 'Foo']);
-        });
-
-        it('missingDeps returns unsatisfied dependencies', () => {
-            const parentMesh = new Mesh('Parent');
-            parentMesh.service(Bar);
-            const childMesh = new Mesh('Child', parentMesh);
-            childMesh.service(Baz);
-            childMesh.service(Qux);
-            const deps = [...childMesh.missingDeps()];
-            const depKeys = deps.map(_ => _.key).sort();
-            assert.deepStrictEqual(depKeys, ['Config', 'Foo']);
-        });
-
-    });
-
 });

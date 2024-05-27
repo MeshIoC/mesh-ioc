@@ -1,4 +1,4 @@
-# Mesh IoC
+# [Mesh IoC
 
 Powerful and lightweight alternative to Dependency Injection (DI) solutions like [Inversify](https://inversify.io/).
 
@@ -16,6 +16,16 @@ Mesh IoC solves the problem of dependency management of application services. It
 - 🧩 Flexible and composable
 - 🕵️‍♀️ Provides APIs for dependency analysis
 - 🐓 🥚 Tolerates circular dependencies
+
+## Prerequisites
+
+Make sure `tsconfig.json` contains the following:
+
+```
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "useDefineForClassFields": false,
+```
 
 ## API Cheatsheet
 
@@ -392,6 +402,14 @@ Note: the important limitation of this approach is that `@dep` are not available
 - TypeScript `interface` cannot be a service key, because it does not exist at runtime. Use `abstract class` instead.
 
 - Don't be too dogmatic about interface/implementation split. For example, if all class methods are its public interface, there is no point in splitting it into an "interface" and its single implementation (e.g. ` abstract Config` and `ConfigImpl`) — this provides close to zero practical value and contributes towards people disliking the OOP paradigm for its verbosity and cargo culting. Instead just bind the concrete class to itself.
+
+## TypeScript Decorators
+
+This library is designed to work with [TypeScript stage-2 Experimental Decorators](https://www.typescriptlang.org/docs/handbook/decorators.html) and emitted metadata to facilitate some of the features.
+
+TypeScript 5.0 implementes [stage-3 ECMAScript decorators](https://devblogs.microsoft.com/typescript/announcing-typescript-5-0/#decorators) which is largely incompatible with Mesh.
+
+We have not yet looked at migrating to ECMAScript decorators, but it is likely that migrating to them will be a breaking change. For now, please stick with `experimentalDecorators: true` as mentioned in [prerequisited](#prerequisites).
 
 ## License
 

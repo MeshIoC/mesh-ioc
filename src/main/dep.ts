@@ -23,7 +23,6 @@ export function dep(options: DepOptions = {}) {
         depMetadata.push({
             class: target.constructor,
             propertyName,
-            designTypeName: designType.name,
             key,
         });
         Object.defineProperty(target, propertyName, {

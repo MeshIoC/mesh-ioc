@@ -1,4 +1,4 @@
-# [Mesh IoC
+# Mesh IoC
 
 Powerful and lightweight alternative to Dependency Injection (DI) solutions like [Inversify](https://inversify.io/).
 
@@ -30,6 +30,8 @@ Make sure `tsconfig.json` contains the following:
 ## API Cheatsheet
 
 ```ts
+import { Mesh, dep } from 'mesh-ioc';
+
 // Mesh is an IoC container that stores service bindings and instantiated objects
 const mesh = new Mesh('someName');
 

@@ -17,12 +17,13 @@ export const MESH_REF = Symbol.for('MESH_REF');
  * - `alias` — a "redirect" mapping, resolves a key into another key from the same mesh; useful in tests
  */
 export class Mesh {
+
     bindings = new Map<string, Binding<any>>();
     instances = new Map<string, any>();
     middlewares: Middleware[] = [];
 
     constructor(
-        public name: string = 'default',
+        public name = 'default',
         public parent: Mesh | undefined = undefined,
     ) {
         this.constant(Mesh, this);
@@ -157,7 +158,7 @@ export class Mesh {
             yield dep;
             const binding = this.getBinding(dep.key);
             if (binding?.type === 'service') {
-                yield *this.traverseClassDeps(binding.class, visitedKeys);
+                yield* this.traverseClassDeps(binding.class, visitedKeys);
             }
         }
     }

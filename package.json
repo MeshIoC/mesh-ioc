@@ -1,6 +1,6 @@
 {
     "name": "mesh-ioc",
-    "version": "4.1.2",
+    "version": "4.2.0",
     "description": "Powerful and Lightweight IoC Library",
     "type": "module",
     "sideEffects": false,

@@ -1,7 +1,7 @@
 import { getClassDeps } from './dep.js';
 import { MeshBindingNotFound, MeshInvalidBinding } from './errors.js';
-import { AbstractClass, Binding, DepMetadata, Middleware, ScopeConstructor, ServiceConstructor, ServiceKey } from './types.js';
-import { keyToString } from './util.js';
+import { AbstractClass, Binding, DepMetadata, Middleware, ScopeConstructor, ScopeFactory, ServiceConstructor, ServiceKey } from './types.js';
+import { instantiate, keyToString } from './util.js';
 
 export const MESH_REF = Symbol.for('MESH_REF');
 
@@ -67,14 +67,13 @@ export class Mesh {
         throw new MeshInvalidBinding(String(key));
     }
 
-    scope<T extends Mesh>(ctor: ScopeConstructor<T>): this;
-    scope<T extends Mesh>(key: ScopeConstructor<T> | string, ctor?: ScopeConstructor<T>): this {
+    scope<T extends Mesh>(key: ScopeConstructor<T> | string, ctor?: ScopeConstructor<T> | ScopeFactory<T>): this {
         const k = keyToString(key);
         if (typeof ctor === 'function') {
-            this.bindings.set(k, { type: 'scope', constructor: ctor });
+            this.bindings.set(k, { type: 'scope', factory: ctor });
             return this;
         } else if (typeof key === 'function') {
-            this.bindings.set(k, { type: 'scope', constructor: key });
+            this.bindings.set(k, { type: 'scope', factory: key });
             return this;
         }
         throw new MeshInvalidBinding(String(key));
@@ -180,8 +179,9 @@ export class Mesh {
 
     instantiate<T>(binding: Binding<T>): T {
         switch (binding.type) {
-            case 'alias':
+            case 'alias': {
                 return this.resolve(binding.key);
+            }
             case 'service': {
                 // A fake derived class is created with Mesh attached to its prototype.
                 // This allows accessing deps in constructor whilst preserving instanceof.
@@ -191,10 +191,13 @@ export class Mesh {
                 this.injectRef(derived.prototype);
                 return new derived();
             }
-            case 'constant':
+            case 'constant': {
                 return binding.value;
-            case 'scope':
-                return binding.constructor as T;
+            }
+            case 'scope': {
+                const provider = (customParent?: Mesh) => instantiate(binding.factory, customParent ?? this);
+                return provider as T;
+            }
         }
     }
 

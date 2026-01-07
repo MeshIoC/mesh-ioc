@@ -13,8 +13,7 @@ export function scope<T extends Mesh>(serviceKey: ScopeConstructor<T> | string) 
                 if (!mesh) {
                     throw new DepInstanceNotConnected(className, propertyName);
                 }
-                const ctor = mesh.resolve(serviceKey);
-                return (customParent?: Mesh) => new ctor(customParent ?? mesh);
+                return mesh.resolve(serviceKey);
             },
         });
     };

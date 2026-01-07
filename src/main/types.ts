@@ -15,6 +15,8 @@ export type ServiceKey<T> = ServiceConstructor<T> | AbstractClass<T> | string;
 
 export type ScopeConstructor<T extends Mesh = Mesh> = new (mesh: Mesh) => T;
 
+export type ScopeFactory<T extends Mesh = Mesh> = (mesh: Mesh) => T;
+
 export type ScopeProvider<T extends Mesh = Mesh> = (mesh?: Mesh) => T;
 
 export type Middleware = (instance: any) => any;
@@ -38,7 +40,7 @@ export interface AliasBinding {
 
 export interface ScopeBinding {
     type: 'scope';
-    constructor: ScopeConstructor<any>;
+    factory: ScopeConstructor<any> | ScopeFactory<any>;
 }
 
 export interface DepMetadata {

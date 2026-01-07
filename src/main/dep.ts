@@ -2,7 +2,7 @@ import 'reflect-metadata';
 
 import { DepInstanceNotConnected, DepKeyNotInferred } from './errors.js';
 import { Mesh, MESH_REF } from './mesh.js';
-import { Constructor, DepMetadata } from './types.js';
+import { DepMetadata, ServiceConstructor } from './types.js';
 
 export const depMetadata: DepMetadata[] = [];
 
@@ -52,7 +52,7 @@ export function dep(options: DepOptions = {}) {
     };
 }
 
-export function getClassDeps(ctor: Constructor<any>) {
+export function getClassDeps(ctor: ServiceConstructor<any>) {
     const result: DepMetadata[] = [];
     let proto = ctor;
     while (proto !== Object.prototype) {

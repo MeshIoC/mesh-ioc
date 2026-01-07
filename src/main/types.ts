@@ -1,17 +1,25 @@
-export type Constructor<T> = new(...args: any[]) => T;
-
-export type ServiceConstructor<T> = new() => T;
+import { Mesh } from './mesh.js';
 
 export interface AbstractClass<T> {
     name: string;
     prototype: T;
 }
 
+export type Constructor<T> = new (...args: any[]) => T;
+
+export type Factory<T> = (...args: any[]) => T;
+
+export type ServiceConstructor<T> = new () => T;
+
 export type ServiceKey<T> = ServiceConstructor<T> | AbstractClass<T> | string;
+
+export type ScopeConstructor<T extends Mesh = Mesh> = new (mesh: Mesh) => T;
+
+export type ScopeProvider<T extends Mesh = Mesh> = (mesh?: Mesh) => T;
 
 export type Middleware = (instance: any) => any;
 
-export type Binding<T> = ConstantBinding<T> | ServiceBinding<T> | AliasBinding;
+export type Binding<T> = ConstantBinding<T> | ServiceBinding<T> | AliasBinding | ScopeBinding;
 
 export interface ConstantBinding<T> {
     type: 'constant';
@@ -26,6 +34,11 @@ export interface ServiceBinding<T> {
 export interface AliasBinding {
     type: 'alias';
     key: string;
+}
+
+export interface ScopeBinding {
+    type: 'scope';
+    constructor: ScopeConstructor<any>;
 }
 
 export interface DepMetadata {

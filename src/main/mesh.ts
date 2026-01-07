@@ -1,6 +1,6 @@
 import { getClassDeps } from './dep.js';
 import { MeshBindingNotFound, MeshInvalidBinding } from './errors.js';
-import { AbstractClass, Binding, Constructor, DepMetadata, Middleware, ServiceConstructor, ServiceKey } from './types.js';
+import { AbstractClass, Binding, DepMetadata, Middleware, ScopeConstructor, ServiceConstructor, ServiceKey } from './types.js';
 import { keyToString } from './util.js';
 
 export const MESH_REF = Symbol.for('MESH_REF');
@@ -10,11 +10,12 @@ export const MESH_REF = Symbol.for('MESH_REF');
  *
  * Encapsulates bindings — a map that allows to associate a _service key_ with a way to obtain an instance.
  *
- * Three binding types are supported via corresponding methods:
+ * The following binding types are supported via corresponding methods:
  *
  * - `service` — a zero-arg constructor mapping; these will be instantiated on demand and cached in a mesh instance
  * - `constant` — an instance of a class (can be bound by using class as service name) or an arbitrary value bound by a string key
- * - `alias` — a "redirect" mapping, resolves a key into another key from the same mesh; useful in tests
+ * - `alias` — a "redirect" mapping, resolves a key into another key from the same mesh
+ * - `scope` — a constructor or a factory function that returns a mesh instance
  */
 export class Mesh {
 
@@ -27,6 +28,7 @@ export class Mesh {
         public parent: Mesh | undefined = undefined,
     ) {
         this.constant(Mesh, this);
+        this.injectRef(this);
     }
 
     *[Symbol.iterator]() {
@@ -60,6 +62,19 @@ export class Mesh {
             return this;
         } else if (typeof key === 'function') {
             this.bindings.set(k, { type: 'service', class: key });
+            return this;
+        }
+        throw new MeshInvalidBinding(String(key));
+    }
+
+    scope<T extends Mesh>(ctor: ScopeConstructor<T>): this;
+    scope<T extends Mesh>(key: ScopeConstructor<T> | string, ctor?: ScopeConstructor<T>): this {
+        const k = keyToString(key);
+        if (typeof ctor === 'function') {
+            this.bindings.set(k, { type: 'scope', constructor: ctor });
+            return this;
+        } else if (typeof key === 'function') {
+            this.bindings.set(k, { type: 'scope', constructor: key });
             return this;
         }
         throw new MeshInvalidBinding(String(key));
@@ -148,7 +163,7 @@ export class Mesh {
         }
     }
 
-    *traverseClassDeps(ctor: Constructor<any>, visitedKeys = new Set<string>()): Iterable<DepMetadata> {
+    *traverseClassDeps(ctor: ServiceConstructor<any>, visitedKeys = new Set<string>()): Iterable<DepMetadata> {
         const deps = getClassDeps(ctor);
         for (const dep of deps) {
             if (visitedKeys.has(dep.key)) {
@@ -178,6 +193,8 @@ export class Mesh {
             }
             case 'constant':
                 return binding.value;
+            case 'scope':
+                return binding.constructor as T;
         }
     }
 
